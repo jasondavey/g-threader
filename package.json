@@ -1,0 +1,38 @@
+{
+  "name": "gmail-exporter",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "analyze": "ts-node src/analyze.ts",
+    "court-doc": "ts-node src/generate-court-doc.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/node": "^22.15.29",
+    "base-64": "^1.0.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.5.0",
+    "fs-extra": "^11.3.0",
+    "googleapis": "^149.0.0",
+    "open": "^10.1.2",
+    "openai": "^4.104.0",
+    "puppeteer": "^24.10.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "utf8": "^3.0.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/base-64": "^1.0.2",
+    "@types/fs-extra": "^11.0.4",
+    "@types/utf8": "^3.0.3",
+    "@types/yargs": "^17.0.32",
+    "ts-node-dev": "^2.0.0"
+  }
+}
