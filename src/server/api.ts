@@ -279,6 +279,48 @@ app.get('/api/download/:filename', (req, res) => {
   res.download(filePath);
 });
 
+// Delete an export file
+// @ts-ignore - suppress TypeScript error with Express route handler
+app.delete('/api/exports/:filename', async (req, res) => {
+  try {
+    const { filename } = req.params;
+    console.log(`DELETE request received at /api/exports/${filename}`);
+    console.log('Request headers:', req.headers);
+    
+    // For debugging purposes, list all files in the exports directory
+    const exportDir = path.join(__dirname, '../../exports');
+    const files = await fs.readdir(exportDir);
+    console.log('Available files in exports directory:', files);
+    
+    // The filename param may include .json if it was sent directly from the client
+    // or it may be without extension if it was extracted from the exports list
+    const cleanFilename = filename.endsWith('.json') ? filename : `${filename}.json`;
+    console.log(`Normalized filename for deletion: ${cleanFilename}`);
+    
+    const filePath = path.join(__dirname, '../../exports', cleanFilename);
+    console.log(`Full path for deletion: ${filePath}`);
+    
+    // Check if file exists
+    const fileExists = await fs.pathExists(filePath);
+    console.log(`File exists check: ${fileExists}`);
+    
+    if (!fileExists) {
+      console.error(`File not found for deletion: ${filePath}`);
+      return res.status(404).json({ error: `File not found: ${cleanFilename}` });
+    }
+    
+    // Delete the file
+    await fs.remove(filePath);
+    
+    console.log(`Successfully deleted file: ${filePath}`);
+    res.json({ success: true, message: `${cleanFilename} was deleted successfully` });
+  } catch (error) {
+    console.error('Error deleting export file:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: `Failed to delete export file: ${errorMessage}` });
+  }
+});
+
 // Serve index.html for the client app
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../../client/build/index.html'));
