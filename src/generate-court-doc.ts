@@ -16,7 +16,7 @@ dotenv.config();
  * @param format Output format: 'md' for Markdown or 'pdf' for PDF
  * @returns Path to the generated document
  */
-async function generateCourtDocument(inputJsonPath: string, outputPath?: string, format: 'md' | 'pdf' = 'md'): Promise<string> {
+export async function generateCourtDocument(inputJsonPath: string, outputPath?: string, format: 'md' | 'pdf' = 'md'): Promise<string> {
   try {
     console.log(`Reading email data from ${inputJsonPath}...`);
     // Read the JSON file
@@ -331,5 +331,7 @@ async function main() {
   }
 }
 
-// Run the script
-main();
+// Only run the script when this file is directly executed (not when imported)
+if (require.main === module) {
+  main();
+}
