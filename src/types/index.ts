@@ -27,6 +27,7 @@ export interface EmailData {
 export interface ExportOptions {
   format: 'json' | 'csv' | 'eml';
   path: string;
+  includeCsv?: boolean; // Whether to include CSV export (defaults to false)
 }
 
 export interface EmailThread {

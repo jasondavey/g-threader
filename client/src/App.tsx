@@ -4,11 +4,18 @@ import { Box, Container, AppBar, Toolbar, Typography, Paper } from '@mui/materia
 import ExportSelector from './pages/ExportSelector';
 import ThreadSelector from './pages/ThreadSelector';
 import DocumentPreview from './pages/DocumentPreview';
+import ExportSearch from './pages/ExportSearch';
+import EmailSelector from './pages/EmailSelector';
 import { SelectionProvider } from './context/SelectionContext';
+import { ProjectProvider } from './context/ProjectContext';
+import ProjectSelectorWrapper from './components/ProjectSelectorWrapper';
+
+// These will be created for our new workflow
 
 const App: React.FC = () => {
   return (
-    <SelectionProvider>
+    <ProjectProvider>
+      <SelectionProvider>
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <AppBar position="static" color="primary">
           <Toolbar>
@@ -23,10 +30,14 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<Navigate to="/exports" replace />} />
               <Route path="/exports" element={<ExportSelector />} />
+              <Route path="/search" element={<ExportSearch />} />
+              <Route path="/select-emails" element={<EmailSelector />} />
               <Route path="/threads/:filename" element={<ThreadSelector />} />
               <Route path="/preview" element={<DocumentPreview />} />
+              {/* New routes will be added here */}
             </Routes>
           </Paper>
+          <ProjectSelectorWrapper />
         </Container>
         
         <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', backgroundColor: '#f5f5f5' }}>
@@ -37,7 +48,8 @@ const App: React.FC = () => {
           </Container>
         </Box>
       </Box>
-    </SelectionProvider>
+      </SelectionProvider>
+    </ProjectProvider>
   );
 };
 

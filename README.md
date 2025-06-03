@@ -1,16 +1,17 @@
 # Gmail Exporter
 
-A TypeScript Node.js application that uses the Gmail API to export emails matching specific filters (by sender, date range, subject, etc) and analyze conversation threads using LLMs.
+A full-stack web application that uses the Gmail API to search, export, and analyze email conversations. Built with TypeScript, Express, React, and Material UI, this application provides a seamless workflow for discovering email insights and generating reports.
 
 ## Features
 
-- Filter emails by sender, date range, subject, or custom query
-- Export emails in multiple formats (JSON, CSV, EML)
-- Group emails into conversation threads
-- Analyze email threads using OpenAI's GPT models
-- Extract key insights from conversations related to specific topics
-- OAuth 2.0 authentication with Gmail API
-- TypeScript for type safety
+- **Email Search**: Filter emails by sender, recipient, date range, subject, or custom query
+- **Project Management**: Organize exports into projects for better workflow management
+- **Export Creation**: Save selected emails as JSON exports with proper thread organization
+- **Thread Analysis**: Analyze email threads with simple statistics or optional OpenAI-powered insights
+- **Report Generation**: Create downloadable PDF reports from analysis results
+- **Modern UI**: Clean, responsive interface built with React and Material UI
+- **OAuth 2.0 Authentication**: Secure access to Gmail API with token refresh support
+- **TypeScript**: End-to-end type safety across frontend and backend
 
 ## Prerequisites
 
@@ -53,31 +54,42 @@ A TypeScript Node.js application that uses the Gmail API to export emails matchi
      OPENAI_API_KEY=your_openai_api_key
      ```
 
-## Usage
+## Getting Started
 
-1. Configure email filters in the `.env` file:
-
-   ```env
-   # Gmail filter settings
-   FILTER_SENDER=example@gmail.com
-   FILTER_FROM_DATE=2023/01/01
-   FILTER_TO_DATE=2023/12/31
-   FILTER_SUBJECT=Important
-   FILTER_QUERY=has:attachment
-   
-   # Export settings
-   EXPORT_PATH=./exports
-   ```
-
-2. Run the application:
+1. Start the application:
 
    ```bash
-   npm start
+   ./start.sh
    ```
 
-3. The first time you run the application, it will provide a URL for authorization. Open the URL in your browser, grant permission to access your Gmail account, and copy the authorization code back to the terminal.
+2. Access the web interface at [http://localhost:3000](http://localhost:3000)
 
-4. The application will search for emails matching your filters, retrieve them, and export them in JSON, CSV, and EML formats to the specified export directory.
+3. The first time you run the application, it will provide a URL for authorization. Open the URL in your browser, grant permission to access your Gmail account, and copy the authorization code back to the terminal if prompted.
+
+## Web Application Workflow
+
+1. **Project Management**
+   - Create and manage projects to organize your email exports
+   - Select an existing project or create a new one before starting an export
+
+2. **Email Search**
+   - Search emails using filters (date range, sender, recipient, subject, etc.)
+   - Review search results in a sortable, filterable table
+   - Select emails to include in your export
+
+3. **Export Creation**
+   - Name your export and associate it with a project
+   - The system will organize selected emails into threads
+   - JSON export files are stored in the exports directory
+
+4. **Analysis**
+   - View thread statistics including word frequency, sender distribution, timeline
+   - Get simple insights about communication patterns
+   - Optionally use OpenAI-powered analysis for deeper insights (requires API key)
+
+5. **Report Generation**
+   - Generate PDF reports from analysis results
+   - Download reports for offline use or sharing
 
 ## Filter Examples
 
@@ -94,6 +106,34 @@ You can combine multiple filters to narrow your search. See [Gmail search operat
 - **JSON**: Exports all email data in a structured JSON format
 - **CSV**: Exports email metadata in a tabular format
 - **EML**: Exports each email as an individual .eml file (can be opened in email clients)
+
+## Gmail API Integration
+
+The application connects to the Gmail API using OAuth 2.0 authentication. Here are important details about this integration:
+
+1. **Authentication Flow**
+   - The first time you run the application, it will prompt you to authorize access to your Gmail account
+   - Default authorization uses a local HTTP server for the OAuth callback
+   - You can set `MANUAL_AUTH=true` in `.env` to use a manual authorization flow if needed
+   - Once authenticated, tokens are stored in a local `token.json` file for future use
+
+2. **Configuration Options**
+   - `MOCK_GMAIL_API=true`: Use mock data instead of real Gmail API (useful for development)
+   - `MANUAL_AUTH=true`: Use manual authorization flow instead of local HTTP server
+   - `PORT=3001`: Change the server port (default: 3001)
+
+3. **API Usage**
+   - The application uses batch processing to avoid Gmail API rate limits
+   - Search queries use Gmail's query language for efficient server-side filtering
+   - Email data is cached locally after retrieval to minimize API calls
+
+4. **Permissions Required**
+   - The application requests `https://www.googleapis.com/auth/gmail.readonly` scope
+   - This allows read-only access to Gmail messages - it cannot modify or send emails
+
+5. **Rate Limits**
+   - Gmail API has usage quotas (see [Google API Quotas](https://developers.google.com/gmail/api/reference/quotas))
+   - The application implements batch processing and exponential backoff for retries
 
 ## Thread Analysis
 

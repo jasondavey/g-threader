@@ -6,7 +6,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}==== Gmail Court Document UI Workflow ====${NC}"
+echo -e "${GREEN}==== Gmail Exporter Application ====${NC}"
 
 # Check if npm is installed
 if ! command -v npm &> /dev/null; then
@@ -14,12 +14,41 @@ if ! command -v npm &> /dev/null; then
     exit 1
 fi
 
-# Make sure exports directory exists
+# Make sure required directories exist
 if [ ! -d "exports" ]; then
     echo -e "${YELLOW}Creating exports directory...${NC}"
     mkdir -p exports
-    # Create a sample empty export file for testing
-    echo '[]' > exports/sample-export.json
+    # Create a properly structured sample export file for testing
+    echo '{"metadata":{"created":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","resultCount":0},"emails":[]}' > exports/sample-export.json
+fi
+
+# Create projects directory
+if [ ! -d "projects" ]; then
+    echo -e "${YELLOW}Creating projects directory...${NC}"
+    mkdir -p projects
+    # Create a sample projects.json file
+    echo '{"projects":[{"id":"sample-project","name":"Sample Project","created":"'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'","exportFiles":["sample-export.json"],"description":"A sample project created by the startup script."}]}' > projects/projects.json
+fi
+
+# Create reports directory
+if [ ! -d "reports" ]; then
+    echo -e "${YELLOW}Creating reports directory...${NC}"
+    mkdir -p reports
+    # Create a sample report file
+    touch reports/sample-report.pdf
+fi
+
+# Create or check .env file
+if [ ! -f ".env" ]; then
+    echo -e "${YELLOW}Creating .env file from .env.example...${NC}"
+    if [ -f ".env.example" ]; then
+        cp .env.example .env
+        echo -e "${YELLOW}Created .env file. Please edit it with your API credentials.${NC}"
+    else
+        echo -e "${RED}.env.example not found. Creating minimal .env file...${NC}"
+        echo "# Google API credentials\nCLIENT_ID=your_client_id_here\nCLIENT_SECRET=your_client_secret_here\nMOCK_GMAIL_API=true" > .env
+        echo -e "${YELLOW}Created minimal .env file with MOCK_GMAIL_API=true for testing.${NC}"
+    fi
 fi
 
 # Install dependencies if node_modules doesn't exist

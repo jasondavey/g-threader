@@ -17,22 +17,41 @@ export class GmailClient {
   private buildQuery(filter: EmailFilter): string {
     const queryParts: string[] = [];
 
-    if (filter.sender) {
-      queryParts.push(`from:${filter.sender}`);
-    }
-
+    // We'll skip sender because it's handled in the query parameter for complex from/to logic
+    
+    // Format dates if they exist
     if (filter.fromDate) {
-      queryParts.push(`after:${filter.fromDate}`);
+      // If it's already in the Gmail API format (YYYY/MM/DD), use it directly
+      if (filter.fromDate.includes('/')) {
+        queryParts.push(`after:${filter.fromDate}`);
+      } else {
+        // Try to convert to simple date format
+        try {
+          const date = new Date(filter.fromDate);
+          const formattedDate = date.toISOString().split('T')[0].replace(/-/g, '/');
+          queryParts.push(`after:${formattedDate}`);
+        } catch (e) {
+          // If parsing fails, use the original
+          queryParts.push(`after:${filter.fromDate}`);
+        }
+      }
     }
 
     if (filter.toDate) {
-      queryParts.push(`before:${filter.toDate}`);
+      if (filter.toDate.includes('/')) {
+        queryParts.push(`before:${filter.toDate}`);
+      } else {
+        try {
+          const date = new Date(filter.toDate);
+          const formattedDate = date.toISOString().split('T')[0].replace(/-/g, '/');
+          queryParts.push(`before:${formattedDate}`);
+        } catch (e) {
+          queryParts.push(`before:${filter.toDate}`);
+        }
+      }
     }
 
-    if (filter.subject) {
-      queryParts.push(`subject:${filter.subject}`);
-    }
-
+    // Only use filter.query for the complete query, which should already include subject and sender/recipient filters
     if (filter.query) {
       queryParts.push(filter.query);
     }
@@ -48,21 +67,36 @@ export class GmailClient {
     console.log(`Searching for emails with query: ${query}`);
     
     try {
+      // Check for "subject:" appearing twice in the query (a common error)
+      const subjectCount = (query.match(/subject:/g) || []).length;
+      if (subjectCount > 1) {
+        console.warn('WARNING: Your query contains multiple subject: terms which may cause no results to be found');
+      }
+      
+      console.log('[0] Making API request to gmail.users.messages.list');
       const response = await this.gmail.users.messages.list({
         userId: 'me',
         q: query,
         maxResults: 500, // Adjust as needed
       });
+      
+      console.log('[0] Gmail API response received:', response.status);
 
       if (!response.data.messages || response.data.messages.length === 0) {
-        console.log('No emails found matching the criteria.');
+        console.log('[0] No emails found matching the criteria.');
         return [];
       }
 
-      console.log(`Found ${response.data.messages.length} emails.`);
+      console.log(`[0] Found ${response.data.messages.length} matching emails`);
       return response.data.messages.map(message => message.id as string);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error listing emails:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        stack: error.stack
+      });
       throw error;
     }
   }

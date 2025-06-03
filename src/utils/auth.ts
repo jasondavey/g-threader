@@ -33,7 +33,23 @@ export async function authorize(): Promise<OAuth2Client> {
   // Check if we have previously stored a token
   try {
     if (fs.existsSync(TOKEN_PATH)) {
+      console.log('Found existing token file, checking validity...');
       const token = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf8'));
+      
+      // Check if token has expired or is about to expire
+      const isTokenExpired = !token.expiry_date || token.expiry_date <= Date.now();
+      if (isTokenExpired) {
+        console.log('Token has expired or is about to expire, getting a new token...');
+        // Delete the existing token file
+        fs.unlinkSync(TOKEN_PATH);
+        if (process.env.MANUAL_AUTH === 'true') {
+          return getNewTokenManual(oAuth2Client);
+        } else {
+          return getNewTokenWithServer(oAuth2Client);
+        }
+      }
+      
+      console.log('Token appears valid, setting credentials...');
       oAuth2Client.setCredentials(token);
       return oAuth2Client;
     } else {

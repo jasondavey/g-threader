@@ -14,13 +14,35 @@ export class EmailExporter {
     // Format timestamp for filenames
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     
+    // Track main export path (to return) and any additional exports
+    let mainExportPath: string;
+    
     switch (options.format) {
       case 'json':
-        return this.exportToJson(emails, options.path, timestamp);
+        mainExportPath = await this.exportToJson(emails, options.path, timestamp);
+        
+        // Generate CSV file if requested
+        if (options.includeCsv) {
+          console.log('Including CSV export as requested');
+          await this.exportToCsv(emails, options.path, timestamp);
+        }
+        
+        return mainExportPath;
+        
       case 'csv':
         return this.exportToCsv(emails, options.path, timestamp);
+        
       case 'eml':
-        return this.exportToEml(emails, options.path);
+        mainExportPath = await this.exportToEml(emails, options.path);
+        
+        // Generate CSV file if requested
+        if (options.includeCsv) {
+          console.log('Including CSV export as requested');
+          await this.exportToCsv(emails, options.path, timestamp);
+        }
+        
+        return mainExportPath;
+        
       default:
         throw new Error(`Unsupported export format: ${options.format}`);
     }
