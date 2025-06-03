@@ -167,36 +167,50 @@ app.post('/api/search-emails', async (req, res) => {
       const gmailClient = new GmailClient(oauth2Client);
       console.log('Authentication successful');
 
-      // Search for emails
+      // Search for emails with pagination
       console.log('Searching for emails with query:', filter.query);
-      const emailIds = await gmailClient.listEmails(filter);
+      const { pageToken, maxResults: reqMaxResults = '50' } = req.body;
+      const maxResults = Math.min(parseInt(reqMaxResults, 10) || 50, 500);
+      
+      console.log(`Fetching emails with pageToken: ${pageToken || 'none'}, maxResults: ${maxResults}`);
+      
+      const { messageIds: emailIds, nextPageToken } = await gmailClient.listEmails(
+        filter,
+        pageToken || undefined,
+        maxResults
+      );
+      
+      console.log(`Found ${emailIds.length} emails in this page`);
 
       if (emailIds.length === 0) {
         console.log('No emails found matching the search criteria');
-        return res.json({ emails: [] });
+        return res.json({ 
+          success: true, 
+          emails: [],
+          nextPageToken: null
+        });
       }
       
-      console.log(`Found ${emailIds.length} emails matching search criteria`);
-      // Limit the number of emails to process
-      const limitedIds = emailIds.slice(0, Math.min(emailIds.length, maxResults));
+      console.log(`Found ${emailIds.length} emails in this page`);
       
       // Get full email data for each ID
       const emails: EmailData[] = [];
       
       // Process emails in batches to avoid rate limits
       const batchSize = 10;
-      for (let i = 0; i < limitedIds.length; i += batchSize) {
-        const batch = limitedIds.slice(i, i + batchSize);
+      for (let i = 0; i < emailIds.length; i += batchSize) {
+        const batch = emailIds.slice(i, i + batchSize);
         const batchPromises = batch.map(id => gmailClient.getEmail(id));
         const batchResults = await Promise.all(batchPromises);
         emails.push(...batchResults);
         
-        console.log(`Processed batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(limitedIds.length/batchSize)}`);
+        console.log(`Processed batch ${Math.floor(i/batchSize) + 1} of ${Math.ceil(emailIds.length/batchSize)}`);
       }
       
       return res.json({
         success: true,
-        emails: emails
+        emails,
+        nextPageToken: nextPageToken || null
       });
       
     } catch (authError) {
@@ -378,9 +392,16 @@ app.get('/api/analyze/:filename', async (req: Request, res: Response) => {
       // Calculate email volume by date
       const emailsByDate: Record<string, number> = {};
       emailData.forEach(email => {
-        // Get just the date portion
-        const datePart = email.date.split('T')[0];
-        emailsByDate[datePart] = (emailsByDate[datePart] || 0) + 1;
+        try {
+          // Safely handle cases where date might be missing or malformed
+          if (email?.date) {
+            const datePart = email.date.split('T')[0];
+            emailsByDate[datePart] = (emailsByDate[datePart] || 0) + 1;
+          }
+        } catch (err) {
+          console.warn('Error processing email date:', err);
+          // Skip this email if date processing fails
+        }
       });
       
       // Convert to array and sort by date

@@ -6,6 +6,7 @@ import ThreadSelector from './pages/ThreadSelector';
 import DocumentPreview from './pages/DocumentPreview';
 import ExportSearch from './pages/ExportSearch';
 import EmailSelector from './pages/EmailSelector';
+import AnalysisReport from './pages/AnalysisReport';
 import { SelectionProvider } from './context/SelectionContext';
 import { ProjectProvider } from './context/ProjectContext';
 import ProjectSelectorWrapper from './components/ProjectSelectorWrapper';
@@ -34,6 +35,7 @@ const App: React.FC = () => {
               <Route path="/select-emails" element={<EmailSelector />} />
               <Route path="/threads/:filename" element={<ThreadSelector />} />
               <Route path="/preview" element={<DocumentPreview />} />
+              <Route path="/analysis" element={<AnalysisReport />} />
               {/* New routes will be added here */}
             </Routes>
           </Paper>

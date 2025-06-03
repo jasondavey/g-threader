@@ -120,7 +120,7 @@ async function testGmailApiConnection() {
     };
     
     // We'll limit to 5 results in our handling
-    const emailIds = await gmailClient.listEmails(filter);
+    const { messageIds: emailIds } = await gmailClient.listEmails(filter);
     const limitedIds = emailIds.slice(0, 5);
     
     console.log(`✅ Successfully found ${emailIds.length} emails.`);

@@ -52,7 +52,7 @@ async function main() {
     // Search for emails
     console.log('Searching for emails matching filters...');
     console.log('Filter criteria:', filter);
-    const emailIds = await gmailClient.listEmails(filter);
+    const { messageIds: emailIds } = await gmailClient.listEmails(filter);
     
     if (emailIds.length === 0) {
       console.log('No emails found matching the criteria.');
@@ -69,7 +69,7 @@ async function main() {
     const batchSize = 10;
     for (let i = 0; i < emailIds.length; i += batchSize) {
       const batch = emailIds.slice(i, i + batchSize);
-      const batchPromises = batch.map(id => gmailClient.getEmail(id));
+      const batchPromises = batch.map((id: string) => gmailClient.getEmail(id));
       
       console.log(`Processing batch ${i / batchSize + 1} of ${Math.ceil(emailIds.length / batchSize)}...`);
       const batchResults = await Promise.all(batchPromises);

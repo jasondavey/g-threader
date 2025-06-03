@@ -128,8 +128,30 @@ const AnalysisReport: React.FC = () => {
           throw new Error(errorData.error || 'Failed to analyze emails');
         }
         
-        const data = await response.json();
-        setAnalysisData(data);
+        const responseData = await response.json();
+        
+        // Transform the server response to match the AnalysisData interface
+        const analysisData: AnalysisData = {
+          topSenders: responseData.topSenders || [],
+          emailsByDay: responseData.volumeByDate || [],
+          emailsByHour: [], // Not provided by the server
+          subjectWordFrequency: responseData.wordFrequency || [],
+          totalWordCount: responseData.summary?.totalEmails || 0,
+          averageResponseTime: responseData.summary?.avgResponseTime || 0,
+          threadCount: responseData.summary?.threadCount || 0,
+          attachmentCount: responseData.summary?.totalAttachments || 0,
+          wordCloudData: (responseData.wordFrequency || []).map((item: { word: string; count: number }) => ({
+            text: item.word,
+            value: item.count
+          })),
+          sentimentAnalysis: responseData.sentimentAnalysis || {
+            positive: 0,
+            neutral: 0,
+            negative: 0
+          }
+        };
+        
+        setAnalysisData(analysisData);
         
         // Generate report URL
         const reportResponse = await fetch(`/api/generate-report/${filename}`, {

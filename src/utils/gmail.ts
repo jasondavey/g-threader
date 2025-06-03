@@ -60,9 +60,17 @@ export class GmailClient {
   }
 
   /**
-   * List emails matching the filter criteria
+   * List emails matching the filter criteria with pagination support
+   * @param filter Email filter criteria
+   * @param pageToken Optional token for pagination
+   * @param maxResults Maximum number of results to return (max 500)
+   * @returns Object containing message IDs and next page token
    */
-  async listEmails(filter: EmailFilter): Promise<string[]> {
+  async listEmails(
+    filter: EmailFilter,
+    pageToken?: string,
+    maxResults: number = 50
+  ): Promise<{ messageIds: string[]; nextPageToken: string | null | undefined }> {
     const query = this.buildQuery(filter);
     console.log(`Searching for emails with query: ${query}`);
     
@@ -77,18 +85,25 @@ export class GmailClient {
       const response = await this.gmail.users.messages.list({
         userId: 'me',
         q: query,
-        maxResults: 500, // Adjust as needed
+        maxResults: Math.min(Math.max(1, maxResults), 500), // Ensure between 1-500
+        pageToken,
       });
       
       console.log('[0] Gmail API response received:', response.status);
 
       if (!response.data.messages || response.data.messages.length === 0) {
         console.log('[0] No emails found matching the criteria.');
-        return [];
+        return { messageIds: [], nextPageToken: undefined };
       }
 
       console.log(`[0] Found ${response.data.messages.length} matching emails`);
-      return response.data.messages.map(message => message.id as string);
+      // Extract message IDs and nextPageToken
+      const messages = response.data.messages || [];
+      
+      return {
+        messageIds: messages.map((message: any) => message.id as string),
+        nextPageToken: response.data.nextPageToken
+      };
     } catch (error: any) {
       console.error('Error listing emails:', error);
       console.error('Error details:', {
